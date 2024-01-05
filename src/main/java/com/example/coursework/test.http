@@ -1,0 +1,87 @@
+###Quiz
+POST http://localhost:8080/quizzes
+Content-Type: application/json
+
+{
+  "name": "hello",
+  "description": "start"
+}
+
+###
+POST http://localhost:8080/quizzes
+Content-Type: application/json
+
+{
+  "name": "oop",
+  "description": "java"
+}
+
+###
+GET http://localhost:8080/quizzes
+
+###
+GET http://localhost:8080/quizzes/453
+
+###
+PUT http://localhost:8080/quizzes/503
+Content-Type: application/json
+
+{
+  "name": "db",
+  "description": "labs"
+}
+
+###
+DELETE http://localhost:8080/quizzes/503
+
+###Question
+POST http://localhost:8080/questions
+Content-Type: application/json
+
+{
+  "type": "testing",
+  "number": 1,
+  "description": "exams",
+  "quiz":
+  {
+    "id": 453
+  }
+}
+
+###
+POST http://localhost:8080/questions
+Content-Type: application/json
+
+{
+  "type": "file",
+  "number": 2,
+  "description": "spring boot",
+  "quiz":
+  {
+    "id": 453
+  }
+}
+
+###
+GET http://localhost:8080/questions
+
+###
+GET http://localhost:8080/questions/152
+
+###
+PUT http://localhost:8080/questions/154
+Content-Type: application/json
+
+{
+  "type": "text",
+  "number": 3,
+  "description": "java",
+  "quiz":
+  {
+    "id": 453
+  }
+}
+
+###
+DELETE http://localhost:8080/quizzes/154
+
