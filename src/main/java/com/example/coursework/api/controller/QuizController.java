@@ -1,12 +1,14 @@
 package com.example.coursework.api.controller;
 
-import com.example.coursework.exeptions.QuizNotFoundExeption;
+import com.example.coursework.exeptions.QuizNotFoundException;
 import com.example.coursework.api.model.Quiz;
 import com.example.coursework.repos.QuizRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 public class QuizController {
@@ -18,25 +20,29 @@ public class QuizController {
         this.repository = repository;
     }
 
+    @Async
     @GetMapping("/quizzes")
-    public List<Quiz> getAll() {
-        return repository.findAll();
+    public CompletableFuture<List<Quiz>> getAll() {
+        return CompletableFuture.completedFuture(repository.findAll());
     }
 
+    @Async
     @GetMapping("/quizzes/{id}")
-    public Quiz getById(@PathVariable Integer id) {
-        return repository.findById(id)
-                .orElseThrow(() -> new QuizNotFoundExeption(id));
+    public CompletableFuture<Quiz> getById(@PathVariable Integer id) {
+        return CompletableFuture.completedFuture(repository.findById(id)
+                .orElseThrow(() -> new QuizNotFoundException(id)));
     }
 
+    @Async
     @PostMapping("/quizzes")
-    public Quiz newQuiz(@RequestBody Quiz newQuiz) {
-        return repository.save(newQuiz);
+    public CompletableFuture<Quiz> newQuiz(@RequestBody Quiz newQuiz) {
+        return CompletableFuture.completedFuture(repository.save(newQuiz));
     }
 
+    @Async
     @PutMapping("/quizzes/{id}")
-    public Quiz replaceQuiz(@RequestBody Quiz newQuiz, @PathVariable Integer id) {
-        return repository.findById(id)
+    public CompletableFuture<Quiz> replaceQuiz(@RequestBody Quiz newQuiz, @PathVariable Integer id) {
+        return CompletableFuture.completedFuture(repository.findById(id)
                 .map(quiz -> {
                     quiz.setName(newQuiz.getName());
                     quiz.setDescription(newQuiz.getDescription());
@@ -45,11 +51,13 @@ public class QuizController {
                 .orElseGet(() -> {
                     newQuiz.setId(id);
                     return repository.save(newQuiz);
-                });
+                }));
     }
 
+    @Async
     @DeleteMapping("/quizzes/{id}")
-    void deleteQuiz(@PathVariable Integer id) {
+    public CompletableFuture<Void> deleteQuiz(@PathVariable Integer id) {
         repository.deleteById(id);
+        return CompletableFuture.completedFuture(null);
     }
 }

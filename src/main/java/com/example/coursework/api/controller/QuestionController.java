@@ -1,12 +1,14 @@
 package com.example.coursework.api.controller;
 
 import com.example.coursework.api.model.Question;
-import com.example.coursework.exeptions.QuestionNotFoundExeption;
+import com.example.coursework.exeptions.QuestionNotFoundException;
 import com.example.coursework.repos.QuestionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 public class QuestionController {
@@ -18,39 +20,45 @@ public class QuestionController {
         this.repository = repository;
     }
 
+    @Async
     @GetMapping("/questions")
-    public List<Question> getAll() {
-        return repository.findAll();
+    public CompletableFuture<List<Question>> getAll() {
+        return CompletableFuture.completedFuture(repository.findAll());
     }
 
+    @Async
     @GetMapping("/questions/{id}")
-    public Question getById(@PathVariable Integer id) {
-        return repository.findById(id)
-                .orElseThrow(() -> new QuestionNotFoundExeption(id));
+    public CompletableFuture<Question> getById(@PathVariable Integer id) {
+        return CompletableFuture.completedFuture(repository.findById(id)
+                .orElseThrow(() -> new QuestionNotFoundException(id)));
     }
 
+    @Async
     @PostMapping("/questions")
-    public Question newQuestion(@RequestBody Question newQuestion) {
-        return repository.save(newQuestion);
+    public CompletableFuture<Question> newQuestion(@RequestBody Question newQuestion) {
+        return CompletableFuture.completedFuture(repository.save(newQuestion));
     }
 
+    @Async
     @PutMapping("/questions/{id}")
-    public Question replaceQuestion(@RequestBody Question newQuestion, @PathVariable Integer id) {
-        return repository.findById(id)
+    public CompletableFuture<Question> replaceQuestion(@RequestBody Question newQuestion, @PathVariable Integer id) {
+        return CompletableFuture.completedFuture(repository.findById(id)
                 .map(question -> {
                     question.setType(newQuestion.getType());
                     question.setNumber(newQuestion.getNumber());
                     question.setDescription(newQuestion.getDescription());
+                    question.setQuiz(newQuestion.getQuiz());
                     return repository.save(question);
                 })
                 .orElseGet(() -> {
                     newQuestion.setId(id);
                     return repository.save(newQuestion);
-                });
+                }));
     }
 
     @DeleteMapping("/questions/{id}")
-    void deleteQuestion(@PathVariable Integer id) {
+    public CompletableFuture<Void> deleteQuestion(@PathVariable Integer id) {
         repository.deleteById(id);
+        return CompletableFuture.completedFuture(null);
     }
 }

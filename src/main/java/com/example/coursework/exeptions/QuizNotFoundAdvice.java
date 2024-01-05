@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 class QuizNotFoundAdvice {
 
   @ResponseBody
-  @ExceptionHandler(QuizNotFoundExeption.class)
+  @ExceptionHandler(QuizNotFoundException.class)
   @ResponseStatus(HttpStatus.NOT_FOUND)
-  String quizNotFoundHandler(QuizNotFoundExeption ex) {
+  String quizNotFoundHandler(QuizNotFoundException ex) {
     return ex.getMessage();
   }
 }
