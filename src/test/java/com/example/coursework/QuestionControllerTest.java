@@ -3,8 +3,9 @@ package com.example.coursework;
 import com.example.coursework.api.controller.QuestionController;
 import com.example.coursework.api.model.Question;
 import com.example.coursework.api.model.Quiz;
+import com.example.coursework.api.service.QuestionService;
 import com.example.coursework.exceptions.QuestionNotFoundException;
-import com.example.coursework.repos.QuestionRepository;
+import com.example.coursework.exceptions.QuizNotFoundException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -25,7 +26,7 @@ public class QuestionControllerTest {
 
     private final Quiz quiz =  new Quiz(1, "Quiz1", "Description1");
     @Mock
-    private QuestionRepository mockRepository;
+    private QuestionService mockService;
 
     @InjectMocks
     private QuestionController questionController;
@@ -36,7 +37,7 @@ public class QuestionControllerTest {
                 new Question(1, "Multiple Choice", 1, "Question1", quiz),
                 new Question(2, "Short Answer", 2, "Question2", quiz)
         );
-        when(mockRepository.findAll()).thenReturn(mockQuestions);
+        when(mockService.getAllQuestions()).thenReturn(mockQuestions);
 
         List<Question> result = questionController.getAll().join();
 
@@ -46,7 +47,7 @@ public class QuestionControllerTest {
     @Test
     public void testGetQuestionById() {
         Question mockQuestion = new Question(1, "Multiple Choice", 1, "Question1", quiz);
-        when(mockRepository.findById(1)).thenReturn(Optional.of(mockQuestion));
+        when(mockService.getQuestionById(1)).thenReturn(mockQuestion);
 
         Question result = questionController.getById(1).join();
 
@@ -54,9 +55,9 @@ public class QuestionControllerTest {
     }
 
     @Test
-    public void testNewQuestion() {
+    public void testPostQuestion() {
         Question newQuestion = new Question(null, "New Type", 3, "New Question", quiz);
-        when(mockRepository.save(any(Question.class))).thenReturn(newQuestion);
+        when(mockService.createQuestion(any(Question.class))).thenReturn(newQuestion);
 
         Question result = questionController.newQuestion(newQuestion).join();
 
@@ -64,12 +65,10 @@ public class QuestionControllerTest {
     }
 
     @Test
-    public void testReplaceQuestion() {
-        Question existingQuestion = new Question(1, "Existing Type", 1, "Existing Question", quiz);
+    public void testPutQuestion() {
         Question newQuestion = new Question(1, "Updated Type", 1, "Updated Question", quiz);
 
-        when(mockRepository.findById(1)).thenReturn(Optional.of(existingQuestion));
-        when(mockRepository.save(any(Question.class))).thenReturn(newQuestion);
+        when(mockService.updateQuestion(1, newQuestion)).thenReturn(newQuestion);
 
         Question result = questionController.replaceQuestion(newQuestion, 1).join();
 
@@ -78,15 +77,17 @@ public class QuestionControllerTest {
 
     @Test
     public void testDeleteQuestion() {
+        doNothing().when(mockService).deleteQuestion(1);
+
         CompletableFuture<Void> result = questionController.deleteQuestion(1);
 
         assertNull(result.join());
-        verify(mockRepository, times(1)).deleteById(1);
+        verify(mockService, times(1)).deleteQuestion(1);
     }
 
     @Test(expected = QuestionNotFoundException.class)
     public void testDeleteQuizNotFound() {
-        when(mockRepository.existsById(1)).thenReturn(false);
+        doThrow(new QuestionNotFoundException(1)).when(mockService).deleteQuestion(1);
 
         CompletableFuture<Void> result = questionController.deleteQuestion(1);
 
