@@ -1,7 +1,7 @@
 package com.example.coursework.api.controller;
 
 import com.example.coursework.api.model.Question;
-import com.example.coursework.exeptions.QuestionNotFoundException;
+import com.example.coursework.exceptions.QuestionNotFoundException;
 import com.example.coursework.repos.QuestionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -57,8 +57,10 @@ public class QuestionController {
     }
 
     @DeleteMapping("/questions/{id}")
-    public CompletableFuture<Void> deleteQuestion(@PathVariable Integer id) {
-        repository.deleteById(id);
-        return CompletableFuture.completedFuture(null);
+    public CompletableFuture<Void> deleteQuestion(@PathVariable Integer id) throws QuestionNotFoundException {
+        if (repository.existsById(id)) {
+            repository.deleteById(id);
+            return CompletableFuture.completedFuture(null);
+        } else throw new QuestionNotFoundException(id);
     }
 }

@@ -1,6 +1,6 @@
 package com.example.coursework.api.controller;
 
-import com.example.coursework.exeptions.QuizNotFoundException;
+import com.example.coursework.exceptions.QuizNotFoundException;
 import com.example.coursework.api.model.Quiz;
 import com.example.coursework.repos.QuizRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,8 +56,10 @@ public class QuizController {
 
     @Async
     @DeleteMapping("/quizzes/{id}")
-    public CompletableFuture<Void> deleteQuiz(@PathVariable Integer id) {
-        repository.deleteById(id);
-        return CompletableFuture.completedFuture(null);
+    public CompletableFuture<Void> deleteQuiz(@PathVariable Integer id) throws QuizNotFoundException {
+        if (repository.existsById(id)) {
+            repository.deleteById(id);
+            return CompletableFuture.completedFuture(null);
+        } else throw new QuizNotFoundException(id);
     }
 }

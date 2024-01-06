@@ -1,4 +1,4 @@
-package com.example.coursework.exeptions;
+package com.example.coursework.exceptions;
 
 public class QuizNotFoundException extends RuntimeException {
 

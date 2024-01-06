@@ -1,4 +1,4 @@
-package com.example.coursework.exeptions;
+package com.example.coursework.exceptions;
 
 public class QuestionNotFoundException extends RuntimeException {
     public QuestionNotFoundException(Integer id) {
