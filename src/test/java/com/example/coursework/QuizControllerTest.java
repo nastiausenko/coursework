@@ -13,6 +13,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -31,9 +32,12 @@ public class QuizControllerTest {
     public void testGetAllQuizzes() {
         List<Quiz> mockQuizzes = Arrays.asList(new Quiz(1, "Quiz1", "Description1"),
                 new Quiz(2, "Quiz2", "Description2"));
-        when(mockService.getAllQuiz()).thenReturn(mockQuizzes);
+        CompletableFuture<List<Quiz>> completedFuture = CompletableFuture.completedFuture(mockQuizzes);
+        when(mockService.getAllQuiz()).thenReturn(completedFuture);
 
-        List<Quiz> result = quizController.getAll().join();
+        CompletableFuture<List<Quiz>> resultFuture = quizController.getAll();
+
+        List<Quiz> result = resultFuture.join();
 
         assertEquals(2, result.size());
     }
@@ -41,9 +45,12 @@ public class QuizControllerTest {
     @Test
     public void testGetQuizById() {
         Quiz mockQuiz = new Quiz(1, "Quiz1", "Description1");
-        when(mockService.getQuizById(1)).thenReturn(mockQuiz);
+        CompletableFuture<Quiz> completedFuture = CompletableFuture.completedFuture(mockQuiz);
+        when(mockService.getQuizById(1)).thenAnswer(invocation -> completedFuture);
 
-        Quiz result = quizController.getById(1).join();
+        CompletableFuture<Quiz> resultFuture = quizController.getById(1);
+
+        Quiz result = resultFuture.join();
 
         assertEquals("Quiz1", result.getName());
     }
@@ -51,27 +58,34 @@ public class QuizControllerTest {
     @Test
     public void testPostQuiz() {
         Quiz newQuiz = new Quiz(null, "New Quiz", "New Description");
-        when(mockService.createQuiz(any(Quiz.class))).thenReturn(newQuiz);
+        CompletableFuture<Quiz> completedFuture = CompletableFuture.completedFuture(newQuiz);
+        when(mockService.createQuiz(any(Quiz.class))).thenReturn(completedFuture);
 
-        Quiz result = quizController.newQuiz(newQuiz).join();
+        CompletableFuture<Quiz> resultFuture = quizController.newQuiz(newQuiz);
+        Quiz result = resultFuture.join();
 
         assertEquals("New Quiz", result.getName());
     }
 
     @Test
-    public void testPutQuiz() {
+    public void testPutQuiz() throws ExecutionException, InterruptedException {
         Quiz newQuiz = new Quiz(1, "Updated Quiz", "Updated Description");
 
-        when(mockService.updateQuiz(1, newQuiz)).thenReturn(newQuiz);
+        CompletableFuture<Quiz> future = CompletableFuture.completedFuture(newQuiz);
+        when(mockService.updateQuiz(1, newQuiz)).thenReturn(future);
 
-        Quiz result = quizController.replaceQuiz(newQuiz, 1).join();
+        Quiz result = quizController.replaceQuiz(newQuiz, 1).get();
 
         assertEquals("Updated Quiz", result.getName());
     }
 
     @Test
     public void testDeleteQuiz() {
-        doNothing().when(mockService).deleteQuiz(1);
+        doAnswer(invocation -> {
+            CompletableFuture<Void> future = new CompletableFuture<>();
+            future.complete(null);
+            return future;
+        }).when(mockService).deleteQuiz(1);
 
         CompletableFuture<Void> result = quizController.deleteQuiz(1);
 
@@ -86,5 +100,4 @@ public class QuizControllerTest {
         CompletableFuture<Void> result = quizController.deleteQuiz(1);
 
         result.join();
-    }
-}
+    }}

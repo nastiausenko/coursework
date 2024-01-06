@@ -23,30 +23,30 @@ public class QuestionController {
     @Async
     @GetMapping
     public CompletableFuture<List<Question>> getAll() {
-        return CompletableFuture.completedFuture(questionService.getAllQuestions());
+        return questionService.getAllQuestions();
     }
 
     @Async
     @GetMapping("/{id}")
     public CompletableFuture<Question> getById(@PathVariable Integer id) {
-        return CompletableFuture.completedFuture(questionService.getQuestionById(id));
+        return questionService.getQuestionById(id);
     }
 
     @Async
     @PostMapping
     public CompletableFuture<Question> newQuestion(@RequestBody Question newQuestion) {
-        return CompletableFuture.completedFuture(questionService.createQuestion(newQuestion));
+        return questionService.createQuestion(newQuestion);
     }
 
     @Async
     @PutMapping("/{id}")
     public CompletableFuture<Question> replaceQuestion(@RequestBody Question newQuestion, @PathVariable Integer id) {
-        return CompletableFuture.completedFuture(questionService.updateQuestion(id, newQuestion));
+        return questionService.updateQuestion(id, newQuestion);
     }
 
     @Async
     @DeleteMapping("/{id}")
     public CompletableFuture<Void> deleteQuestion(@PathVariable Integer id) {
-        return CompletableFuture.completedFuture(questionService.deleteQuestion(id));
+        return questionService.deleteQuestion(id);
     }
 }

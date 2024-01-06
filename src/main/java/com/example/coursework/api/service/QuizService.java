@@ -4,9 +4,11 @@ import com.example.coursework.api.model.Quiz;
 import com.example.coursework.exceptions.QuizNotFoundException;
 import com.example.coursework.repos.QuizRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class QuizService {
@@ -17,20 +19,25 @@ public class QuizService {
         this.repository = repository;
     }
 
-    public List<Quiz> getAllQuiz() {
-        return repository.findAll();
+    @Async
+    public CompletableFuture<List<Quiz>> getAllQuiz() {
+        return CompletableFuture.supplyAsync(repository::findAll);
     }
 
-    public Quiz getQuizById(Integer id) {
-        return repository.findById(id).orElseThrow(() -> new QuizNotFoundException(id));
+    @Async
+    public CompletableFuture<Quiz> getQuizById(Integer id) {
+        return CompletableFuture.supplyAsync(() -> repository.findById(id)
+                .orElseThrow(() -> new QuizNotFoundException(id)));
     }
 
-    public Quiz createQuiz(Quiz newQuiz) {
-        return repository.save(newQuiz);
+    @Async
+    public CompletableFuture<Quiz> createQuiz(Quiz newQuiz) {
+        return CompletableFuture.supplyAsync(() -> repository.save(newQuiz));
     }
 
-    public Quiz updateQuiz(Integer id, Quiz newQuiz) {
-        return repository.findById(id)
+    @Async
+    public CompletableFuture<Quiz> updateQuiz(Integer id, Quiz newQuiz) {
+        return CompletableFuture.supplyAsync(() -> repository.findById(id)
                 .map(quiz -> {
                     quiz.setName(newQuiz.getName());
                     quiz.setDescription(newQuiz.getDescription());
@@ -39,15 +46,18 @@ public class QuizService {
                 .orElseGet(() -> {
                     newQuiz.setId(id);
                     return repository.save(newQuiz);
-                });
+                })
+        );
     }
 
-    public Void deleteQuiz(Integer id) {
-        if (repository.existsById(id)) {
-            repository.deleteById(id);
-        } else {
-            throw new QuizNotFoundException(id);
-        }
-        return null;
+    @Async
+    public CompletableFuture<Void> deleteQuiz(Integer id) {
+        return CompletableFuture.runAsync(() -> {
+            if (repository.existsById(id)) {
+                repository.deleteById(id);
+            } else {
+                throw new QuizNotFoundException(id);
+            }
+        });
     }
 }
